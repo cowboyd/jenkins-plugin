@@ -27,6 +27,8 @@ module Jenkins
       @start = @stop = proc {}
       @descriptors = {}
       @wrappers = {}
+      require 'rubygems'
+      require 'bundled-gems.jar'
       script = 'support/hudson/plugin/models.rb'
       self.instance_eval @java.read(script), script
     end
