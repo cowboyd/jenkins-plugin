@@ -11,8 +11,14 @@ module Jenkins
   class Plugin
 
     # A list of all the hudson.model.Descriptor objects
-    # of which this plugin is aware. This is used so that
-    # TODO: this may go away.
+    # of which this plugin is aware *indexed by Wrapper class*
+    #
+    # This is used so that wrappers can always have a single place
+    # to go when they are asked for a descriptor. That way, wrapper
+    # instances can always return the descriptor associated with
+    # their class.
+    #
+    # This may go away.
     attr_reader :descriptors
 
     # Initializes this plugin by reading the models.rb
@@ -27,8 +33,6 @@ module Jenkins
       @start = @stop = proc {}
       @descriptors = {}
       @wrappers = {}
-      require 'rubygems'
-      require 'bundled-gems.jar'
       script = 'support/hudson/plugin/models.rb'
       self.instance_eval @java.read(script), script
     end
