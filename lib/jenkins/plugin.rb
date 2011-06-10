@@ -1,4 +1,5 @@
 
+require 'pathname'
 
 module Jenkins
   # Acts as the primary gateway between Ruby and Jenkins
@@ -33,8 +34,10 @@ module Jenkins
       @start = @stop = proc {}
       @descriptors = {}
       @wrappers = {}
+      load_models
       script = 'support/hudson/plugin/models.rb'
       self.instance_eval @java.read(script), script
+
     end
 
     # Called once when Jenkins first initializes this plugin
@@ -88,5 +91,16 @@ module Jenkins
         else object
       end
     end
+
+    def load_models
+      for filename in Dir["#{model_path}/**/*.rb"]
+        load filename
+      end
+    end
+
+    def model_path
+      Pathname(__FILE__).dirname.join('../../../plugin/models')
+    end
+
   end
 end
