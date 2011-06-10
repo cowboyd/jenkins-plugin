@@ -9,7 +9,7 @@ describe Jenkins::Model::Action do
     a.display_name.should eql "CoolAction"
   end
 
-  describe "icon_file" do
+  describe "its icon_file" do
     it "is nil by default" do
       new_action.icon.should be_nil
     end
