@@ -6,7 +6,7 @@ that will generate a project skeleton. This skeleton will come complete with git
 the goodies that you need to do your plugin develompent.
 
 Background: Creating a brand new Jenkins Ruby Plugin
-  Given I've run "jenkins plugin newplugin"
+  Given I've run "jenkins-plugin create newplugin"
 
 Scenario: The directory skeleton is generated
   Then I should see this structure
