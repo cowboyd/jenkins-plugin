@@ -1,7 +1,8 @@
 
 module Jenkins
   module Tasks
-    class BuildWrapper < Jenkins::Model
+    class BuildWrapper
+      include Jenkins::Model
     end
   end
 end
