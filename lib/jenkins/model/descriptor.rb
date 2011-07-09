@@ -6,7 +6,7 @@ module Jenkins
     class Descriptor < Java::hudson.model.Descriptor
 
       def initialize(name, impl, plugin, java_type)
-        super(Java::org.jruby.RubyObject.java_class)
+        super(Java.org.jruby.RubyObject.java_class)
         @name, @impl, @plugin, @java_type = name, impl, plugin, java_type
       end
 
