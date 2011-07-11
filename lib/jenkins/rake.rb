@@ -7,8 +7,9 @@ module Jenkins
     def self.install_tasks
       desc "package up stuff into HPI file"
       ::Rake::Task.define_task :package do
+        Dir.mkdir "target" if !File.exists?("target")
+        File.delete "target/the.hpi" if File.exists?("target/the.hpi")
 
-        Dir.mkdir "target"
         Zip::ZipFile.open("target/the.hpi", Zip::ZipFile::CREATE) do |zipfile|
           zipfile.get_output_stream("META-INF/MANIFEST.MF") do |f|
             f.puts "Manifest-Version: 1.0"
@@ -27,6 +28,12 @@ module Jenkins
             f.puts "Plugin-Developers:"
           end
           zipfile.mkdir("WEB-INF/classes")
+
+          Dir.glob("lib/**/*") do |f|
+            if !File.directory? f
+              zipfile.add("WEB-INF/classes/#{f[4..-1]}",f)
+            end
+          end
         end
       end
     end
