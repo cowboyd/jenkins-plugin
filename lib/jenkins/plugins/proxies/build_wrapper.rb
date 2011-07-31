@@ -9,7 +9,7 @@ module Jenkins
 
       class BuildWrapper < Java.hudson.tasks.BuildWrapper
         include Java.jenkins.ruby.Get
-        include Proxy
+#        include Proxy
 
         def initialize(plugin, object)
           super()
