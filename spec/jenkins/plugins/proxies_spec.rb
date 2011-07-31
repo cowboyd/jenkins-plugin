@@ -67,6 +67,12 @@ describe Jenkins::Plugins::Proxies do
         before do
           @A = Class.new
           @B = Class.new(@A)
+          @A.class_eval do
+            attr_reader :native
+            def initialize(native = nil)
+              @native = native
+            end
+          end
         end
 
         describe "and there is a proxy registered for the subclass but not the superclass" do
@@ -79,8 +85,13 @@ describe Jenkins::Plugins::Proxies do
             @proxies.export(@B.new).should be_kind_of(@p)
           end
 
+          it "will create a native for the external class" do
+            internal = @proxies.import(@p.new)
+            internal.should be_kind_of(@B)
+          end
+
           it "will fail to create a proxy for the superclass" do
-            expect {@proxies.export @A.new}.should raise_error
+            expect {@proxies.export @A.new}.should raise_error(Jenkins::Plugins::ExportError)
           end
         end
 
@@ -91,6 +102,7 @@ describe Jenkins::Plugins::Proxies do
           end
           it "will create a proxy for the superclass" do
             @proxies.export(@A.new).should be_kind_of(@p)
+            @proxies.import(@p.new).should be_kind_of(@A)
           end
 
           it "will create a proxy for the subclass" do
@@ -108,10 +120,12 @@ describe Jenkins::Plugins::Proxies do
           end
           it "will create a proxy for the subclass with its registered proxy class" do
             @proxies.export(@A.new).should be_kind_of(@pA)
+            @proxies.import(@pA.new).should be_kind_of(@A)
           end
 
           it "will create a proxy for the superclass with its registered proxy class" do
             @proxies.export(@B.new).should be_kind_of(@pB)
+            @proxies.import(@pB.new).should be_kind_of(@B)
           end
         end
       end
@@ -125,7 +139,7 @@ describe Jenkins::Plugins::Proxies do
     cls = Class.new
     cls.class_eval do
       attr_reader :plugin, :object
-      def initialize(plugin, object)
+      def initialize(plugin = nil, object = nil)
         @plugin, @object = plugin, object
       end
     end

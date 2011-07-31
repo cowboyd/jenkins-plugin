@@ -5,6 +5,7 @@ module Jenkins
   module Plugins
 
     ExportError = Class.new(StandardError)
+    ImportError = Class.new(StandardError)
 
     # Maps JRuby objects part of the idomatic Ruby API
     # to a plain Java object representation and vice-versa.
@@ -31,9 +32,6 @@ module Jenkins
     # reuse mappings where possible.
     class Proxies
 
-      # A weakly referenced list of external forms keyed by native Ruby object.
-      attr_reader :wrappers
-
       def initialize(plugin)
         @plugin = plugin
         @int2ext = java.util.WeakHashMap.new
@@ -57,6 +55,16 @@ module Jenkins
         if ref = @ext2int[object]
           return ref.get() if ref.get()
         end
+        cls = object.class
+        while cls do
+          if internal_class = @@extcls2intcls[cls]
+            internal = internal_class.new(object)
+            link(internal, object)
+            return internal
+          end
+          cls = cls.superclass
+        end
+        raise ImportError, "unable to find suitable representation for #{object.inspect}"
       end
 
       # Reflect a native Ruby object into its External Java form.
@@ -84,22 +92,41 @@ module Jenkins
         raise ExportError, "unable to find suitable Java Proxy for #{object.inspect}"
       end
 
+      ##
+      # Link a plugin-local Ruby object to an external Java object such that they will
+      # be subsituted for one another when passing values back and forth between Jenkins
+      # and this plugin. An example of this is associating the Ruby Jenkins::Launcher object
+      # with an equivalent
+      #
+      # @param [Object] internal the object on the Ruby side of the link
+      # @param [java.lang.Object] external the object on the Java side of the link
       def link(internal, external)
         @int2ext.put(internal, java.lang.ref.WeakReference.new(external))
         @ext2int.put(external, java.lang.ref.WeakReference.new(internal))
       end
 
-      def self.clear
-        @@intcls2extcls = {}
-        @@extcls2intcls = {}
-      end
-      clear
-
+      ##
+      # Associated the the Ruby class `internal_class` with the Java class `external_class`.
+      #
+      # Whenever a plugin is importing or exporting an object to the other side, it will first
+      # see if there is an instance already linked. If not, it will try to create the other side
+      # of the link by constructing it via reflection. `register` links two classes together so
+      # that links can be built automatically.
+      #
+      # @param [Class] internal_class the Ruby class
+      # @param [java.lang.Class] external_class the Java class on the othe side of this link.
       def self.register(internal_class, external_class)
         @@intcls2extcls[internal_class] = external_class
         @@extcls2intcls[external_class] = internal_class
       end
 
+      ##
+      # Remove all class linkages. This is mainly for testing purposes.
+      def self.clear
+        @@intcls2extcls = {}
+        @@extcls2intcls = {}
+      end
+      clear
     end
   end
 end
