@@ -13,6 +13,9 @@ module Jenkins
       def initialize(native = nil)
         @native = native
       end
+
+      Jenkins::Plugins::Proxies.register self, Java.hudson.model.AbstractBuild
     end
+
   end
 end

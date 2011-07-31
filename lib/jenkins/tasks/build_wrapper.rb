@@ -1,4 +1,6 @@
 
+require 'jenkins/model'
+
 module Jenkins
   module Tasks
 

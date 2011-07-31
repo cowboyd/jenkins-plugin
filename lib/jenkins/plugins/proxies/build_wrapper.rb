@@ -1,4 +1,6 @@
 
+require 'jenkins/tasks/build_wrapper'
+
 module Jenkins
   module Plugins
     class Proxies
@@ -52,7 +54,6 @@ module Jenkins
           @impl.teardown(@plugin.import(build), @plugin.import(listener), @env)
         end
       end
-
 
       register Jenkins::Tasks::BuildWrapper, BuildWrapper
     end
