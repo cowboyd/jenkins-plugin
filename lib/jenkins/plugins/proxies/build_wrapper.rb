@@ -2,6 +2,11 @@
 module Jenkins
   module Plugins
     class Proxies
+
+      ##
+      # Binds the Java hudson.tasks.BuildWrapper API to the idomatic
+      # Ruby API Jenkins::Tasks::BuildWrapper
+
       class BuildWrapper < Java.hudson.tasks.BuildWrapper
         include Java.jenkins.ruby.Get
         include Java.jenkins.ruby.DoDynamic
