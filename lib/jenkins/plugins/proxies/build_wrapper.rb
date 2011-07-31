@@ -9,7 +9,7 @@ module Jenkins
 
       class BuildWrapper < Java.hudson.tasks.BuildWrapper
         include Java.jenkins.ruby.Get
-        include Java.jenkins.ruby.DoDynamic
+        include Proxy
 
         def initialize(plugin, object)
           super()
@@ -33,10 +33,6 @@ module Jenkins
 
         def get(name)
           @object.respond_to?(name) ? @object.send(name) : nil
-        end
-
-        def doDynamic(request, response)
-          response.getWriter().println("Hello")
         end
 
         private
