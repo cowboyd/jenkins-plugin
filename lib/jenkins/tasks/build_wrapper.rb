@@ -11,9 +11,9 @@ module Jenkins
       # Perform setup for a build
       #
       # invoked after checkout, but before any `Builder`s have been run
-      # @param [Build] build the build about to run
-      # @param [Launcher] launcher a launcher for the orderly starting/stopping of processes.
-      # @param [BuildListener] listener channel for interacting with build output console
+      # @param [Jenkins::Model::Build] build the build about to run
+      # @param [Jenkins::Launcher] launcher a launcher for the orderly starting/stopping of processes.
+      # @param [Jenkins::Model::Listener] listener channel for interacting with build output console
       # @param [Hash] env a place to store information needed by #teardown
       def setup(build, launcher, listener, env)
         listener.log "hello from a build wrapper"
@@ -24,8 +24,8 @@ module Jenkins
       # invoked after a build has run for better or for worse. It's ok if subclasses
       # don't override this.
       #
-      # @param [Build] the build which has completed
-      # @param [BuildListener] listener channel for interacting with build output console
+      # @param [Jenkins::Model::Build] the build which has completed
+      # @param [Jenkins::Model::Listener] listener channel for interacting with build output console
       # @param [Hash] env contains anything that #setup needs to tell #teardown about
       def teardown(build, listener, env)
 
