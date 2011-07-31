@@ -1,6 +1,10 @@
 
+require 'jenkins/plugins/proxies/build_wrapper'
+
 module Jenkins
   module Plugins
+
+    ExportError = Class.new(StandardError)
 
     # Maps JRuby objects part of the idomatic Ruby API
     # to a plain Java object representation and vice-versa.
@@ -15,10 +19,11 @@ module Jenkins
     # of the plugin must have a foreign (Java) representation with which
     # they can wander about the Jenkins universe and possibly interact
     # with other foreign objects and APIs. Also, Foreign objects
-    # coming in from Jenkins at large.
+    # coming in from Jenkins at large should be wrapped, where possible
+    # to present an idomatic interface..
     #
-    # Finally, Native plugin objects coming home must be unwrapped from
-    # their external form so they are dealt.
+    # Finally, Native plugin that had been wrapped and are comping home
+    # must be unwrapped from their external form.
     #
     # For all cases, we want to maintain referential integrety so that
     # the same object always uses the same external form, etc... so
@@ -29,8 +34,10 @@ module Jenkins
       # A weakly referenced list of external forms keyed by native Ruby object.
       attr_reader :wrappers
 
-      def initialize
-        @wrappers = {}
+      def initialize(plugin)
+        @plugin = plugin
+        @int2ext = java.util.WeakHashMap.new
+        @ext2int = java.util.WeakHashMap.new
       end
 
       # Reflect a foreign Java object into the context of this plugin.
@@ -47,12 +54,9 @@ module Jenkins
       # @param [Object] object the object to bring in from the outside
       # @return the best representation of that object for this plugin
       def import(object)
-        #righ now, only implement the case where it is a wrapper, and don't
-        #try to layer
-        object.respond_to?(:unwrap) ? object.unwrap : object
-        # TODO: perhaps better not to ducktype, since Java object could have the
-        #unwrap method... maybe better like
-        #object.class < Forgeiner ? object.unwrap : object
+        if ref = @ext2int[object]
+          return ref.get() if ref.get()
+        end
       end
 
       # Reflect a native Ruby object into its External Java form.
@@ -64,7 +68,36 @@ module Jenkins
       # This is probably less than useful, and cause exceptions unless Jenkins is
       # expecting a `java.lang.Object`
       def export(object)
+        if ref = @int2ext[object]
+          return ref.get() if ref.get()
+        end
 
+        cls = object.class
+        while cls do
+          if proxy_class = @@intcls2extcls[cls]
+            proxy = proxy_class.new(@plugin, object)
+            link(object, proxy)
+            return proxy
+          end
+          cls = cls.superclass
+        end
+        raise ExportError, "unable to find suitable Java Proxy for #{object.inspect}"
+      end
+
+      def link(internal, external)
+        @int2ext.put(internal, java.lang.ref.WeakReference.new(external))
+        @ext2int.put(external, java.lang.ref.WeakReference.new(internal))
+      end
+
+      def self.clear
+        @@intcls2extcls = {}
+        @@extcls2intcls = {}
+      end
+      clear
+
+      def self.register(internal_class, external_class)
+        @@intcls2extcls[internal_class] = external_class
+        @@extcls2intcls[external_class] = internal_class
       end
 
     end
