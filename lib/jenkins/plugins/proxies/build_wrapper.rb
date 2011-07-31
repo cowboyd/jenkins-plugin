@@ -9,7 +9,6 @@ module Jenkins
 
       class BuildWrapper < Java.hudson.tasks.BuildWrapper
         include Java.jenkins.ruby.Get
-#        include Proxy
 
         def initialize(plugin, object)
           super()
@@ -25,10 +24,6 @@ module Jenkins
 
         def getDescriptor
           @plugin.descriptors[@object.class]
-        end
-
-        def unwrap
-          @object
         end
 
         def get(name)
@@ -58,6 +53,8 @@ module Jenkins
         end
       end
 
+
+      register Jenkins::Tasks::BuildWrapper, BuildWrapper
     end
   end
 end

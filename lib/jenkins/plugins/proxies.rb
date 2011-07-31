@@ -1,5 +1,4 @@
 
-require 'jenkins/plugins/proxies/build_wrapper'
 
 module Jenkins
   module Plugins
@@ -129,4 +128,8 @@ module Jenkins
       clear
     end
   end
+end
+
+["build_wrapper"].each do |proxy|
+  require "jenkins/plugins/proxies/#{proxy}"
 end
