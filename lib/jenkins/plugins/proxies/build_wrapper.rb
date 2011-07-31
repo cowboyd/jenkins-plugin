@@ -1,0 +1,62 @@
+
+module Jenkins
+  module Plugins
+    class Proxies
+      class BuildWrapper < Java.hudson.tasks.BuildWrapper
+        include Java.jenkins.ruby.Get
+        include Java.jenkins.ruby.DoDynamic
+
+        def initialize(plugin, object)
+          super()
+          @plugin = plugin
+          @object = object
+        end
+
+        def setUp(build, launcher, listener)
+          env = {}
+          @object.setup(import(build), import(launcher), import(listener), env)
+          EnvironmentWrapper.new(self, @plugin, @object, env)
+        end
+
+        def getDescriptor
+          @plugin.descriptors[@object.class]
+        end
+
+        def unwrap
+          @object
+        end
+
+        def get(name)
+          @object.respond_to?(name) ? @object.send(name) : nil
+        end
+
+        def doDynamic(request, response)
+          response.getWriter().println("Hello")
+        end
+
+        private
+
+        def import(object)
+          @plugin.import(object)
+        end
+
+      end
+
+
+      class EnvironmentWrapper < Java.hudson.tasks.BuildWrapper::Environment
+
+        def initialize(build_wrapper, plugin, impl, env)
+          super(build_wrapper)
+          @plugin = plugin
+          @impl = impl
+          @env = env
+        end
+
+        def tearDown(build, listener)
+          @impl.teardown(@plugin.import(build), @plugin.import(listener), @env)
+        end
+      end
+
+    end
+  end
+end

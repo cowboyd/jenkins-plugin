@@ -25,10 +25,9 @@ module Jenkins
       # don't override this.
       #
       # @param [Build] the build which has completed
-      # @param [Launcher] launcher a launcher for the orderly starting/stopping of processes
       # @param [BuildListener] listener channel for interacting with build output console
       # @param [Hash] env contains anything that #setup needs to tell #teardown about
-      def teardown(build, launcher, listerner, env)
+      def teardown(build, listener, env)
 
       end
     end
