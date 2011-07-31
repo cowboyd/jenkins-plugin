@@ -33,7 +33,7 @@ module Jenkins
       @java = java
       @start = @stop = proc {}
       @descriptors = {}
-      @wrappers = {}
+      @proxies = Plugins::Proxies.new(self)
       load_models
       script = 'support/hudson/plugin/models.rb'
       self.instance_eval @java.read(script), script
@@ -62,34 +62,17 @@ module Jenkins
     # @param [Object] object the object to bring in from the outside
     # @return the best representation of that object for this plugin
     def import(object)
-      object.respond_to?(:unwrap) ? object.unwrap : object
+      @proxies.import object
     end
 
-    # Prepare an object for its journey into the outside world of Jenkins.
-    # It will try to find a suitable wrapper for the object (currently in a very cheesy way)
-    # and if one is found then it decorate it with that wrapper.
+    # Reflect a native Ruby object into its External Java form.
     #
-    # This decoration is necessary so that the object can provide the Java interface which Jenkins
-    # needs to operate, but the underlying Ruby object can look and act like a normal Ruby object.
-    #
-    # If no wrapper class is available, then it will return just return the native ruby object. This
-    # is probably not the best behavior, since it will appear as an opaque `RubyObject` which
-    # can't do much in the context of Jenkins.
+    # Delegates to `Plugins::Proxies` for the heavy lifting.
     #
     # @param [Object] object the object
+    # @returns [java.lang.Object] the Java proxy
     def export(object)
-      return @wrappers[object] if @wrappers[object]
-      case object
-        when Hudson::Plugin::Cloud
-          puts "it's a cloud, I'm going to wrap it"
-          wrapper = Hudson::Plugin::Cloud::Wrapper.new(self, object)
-          puts "wrapper created: #{wrapper}"
-          return wrapper
-        when Hudson::Plugin::BuildWrapper
-          puts "it's a build wrapper, I'm going to wrap it"
-          wrapper = Hudson::Plugin::BuildWrapper::Wrapper.new(self, object)
-        else object
-      end
+      @proxies.export object
     end
 
     def load_models
