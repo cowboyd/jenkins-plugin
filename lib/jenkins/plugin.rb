@@ -37,7 +37,6 @@ module Jenkins
       load_models
       script = 'support/hudson/plugin/models.rb'
       self.instance_eval @java.read(script), script
-
     end
 
     # Called once when Jenkins first initializes this plugin
