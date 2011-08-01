@@ -2,7 +2,7 @@
 module Jenkins
   module Model
 
-    # Receive events about a running task
+    # Receive/Send events about a running task
     class Listener
 
       # the underlying hudson.model.TaskListener object
@@ -40,6 +40,8 @@ module Jenkins
       def fatal(msg)
         @native.fatalError(msg.to_s)
       end
+
+      Jenkins::Plugins::Proxies.register self, Java.hudson.util.AbstractTaskListener
     end
   end
 end
