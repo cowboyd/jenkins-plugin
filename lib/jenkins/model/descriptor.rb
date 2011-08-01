@@ -3,7 +3,7 @@ require 'json'
 
 module Jenkins
   module Model
-    class Descriptor < Java::hudson.model.Descriptor
+    class Descriptor < Java.hudson.model.Descriptor
 
       def initialize(name, impl, plugin, java_type)
         super(Java.org.jruby.RubyObject.java_class)
@@ -34,11 +34,18 @@ module Jenkins
         properties = JSON.parse(form.toString(2))
         properties.delete("kind")
         properties.delete("stapler-class")
-        instance = @plugin.export(@impl.new(properties))
+        instance = @plugin.export(construct(properties))
         puts "instance created: #{instance}"
         return instance
       end
 
+      private
+
+      def construct(attrs)
+        @impl.new(attrs)
+      rescue ArgumentError
+        @impl.new
+      end
     end
 
   end
